@@ -8,13 +8,23 @@ require 'securerandom'
 
 options = {}
 
+
+ALLOWDED_CRYPTO = /#{Regexp.union(["aes", "xor"]).source}/i
+
 option_parser = OptionParser.new do |opt|
-    opt.on('-f', '--file FILENAME', 'filename') { |o| options[:file] = o }
-    opt.on('-s', '--string STRING', 'string') { |o| options[:string] = o }
-    opt.on('-c', '--crypto AES|XOR', 'crypto type') { |o| options[:crypto] = o }
-    opt.on('-k', '--key KEY', 'encryption key (xor)') { |o| options[:key] = o }
+    opt.on('-f', '--file=FILENAME', 'filename') { |o| options[:file] = o }
+    opt.on('-s', '--string=STRING', 'plaintext string') { |o| options[:string] = o }
+    opt.on('-c', '--crypto=CRYPTO', ALLOWDED_CRYPTO, 'crypto type ( AES | XOR )') { |o| options[:crypto] = o.downcase }
+    opt.on('-k', '--key=KEY', 'encryption key') { |o| options[:key] = o }
 end
-option_parser.parse!
+
+begin
+    option_parser.parse!
+rescue OptionParser::ParseError => e
+    puts option_parser
+    exit 1
+end
+
 
 def print_encrypted_data(data)
     if !data.is_a?(Array)
@@ -60,11 +70,6 @@ def encrypt_aes(data, plaintext_pass)
     return cipher.update(data) + cipher.final
 end
 
-if options[:crypto].nil?
-    puts "[!] -c crypto is required"
-    exit 1
-end
-
 if options[:file] && options[:string]
     puts "[i] -f or -s only, can't have both."
     exit 1
@@ -76,7 +81,9 @@ elsif options[:string]
     data = options[:string]
 end
 
-case options[:crypto].downcase
+puts "xxx : " + options[:crypto].to_s
+
+case options[:crypto]
     when "xor"
         if options[:key]
             pass = options[:key]
