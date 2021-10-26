@@ -16,14 +16,15 @@ option_parser = OptionParser.new do |opt|
     opt.on('-k', '--key=KEY', 'encryption key') { |o| options[:key] = o }
 end
 
-begin
-    option_parser.parse!
-rescue OptionParser::ParseError => e
+# check if any option is selected
+if !options.any?
     puts option_parser
     exit 1
 end
 
-if !options.any?
+begin
+    option_parser.parse!
+rescue OptionParser::ParseError => e
     puts option_parser
     exit 1
 end
