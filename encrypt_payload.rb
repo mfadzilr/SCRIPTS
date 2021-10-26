@@ -10,27 +10,21 @@ ALLOWDED_CRYPTO = /#{Regexp.union(["aes", "xor"]).source}/i
 options = {}
 
 option_parser = OptionParser.new do |opt|
-    opt.on('-f', '--file=FILENAME', 'filename') { |o| options[:file] = o }
-    opt.on('-s', '--string=STRING', 'plaintext string') { |o| options[:string] = o }
-    opt.on('-c', '--crypto=CRYPTO', ALLOWDED_CRYPTO, 'crypto type ( AES | XOR )') { |o| options[:crypto] = o.downcase }
-    opt.on('-k', '--key=KEY', 'encryption key') { |o| options[:key] = o }
+    opt.on('-f', '--file FILENAME', 'filename') { |o| options[:file] = o }
+    opt.on('-s', '--string STRING', 'plaintext string') { |o| options[:string] = o }
+    opt.on('-c', '--crypto CRYPTO', ALLOWDED_CRYPTO, 'crypto type ( AES | XOR )') { |o| options[:crypto] = o.downcase }
+    opt.on('-k', '--key KEY', 'encryption key') { |o| options[:key] = o }
 end
 
 begin
     option_parser.parse!
+    if !options.any? or (options[:file] and options[:string])
+        puts option_parser
+        exit 0
+    end
 rescue OptionParser::ParseError => e
-    puts option_parser
-    exit 1
-end
-
-if !options.any?
-    puts option_parser
-    exit 1
-end
-
-if options[:file] && options[:string]
-    puts "[i] -f or -s only, can't have both."
-    exit 1
+    puts "[!] Error: #{e}"
+    exit 0
 end
 
 # print output
@@ -58,7 +52,7 @@ end
 def digest_key(plaintext_pass)
     sha256 = OpenSSL::Digest::SHA256.new
     key_digest = sha256.digest(plaintext_pass)
-    puts "[ ENCRYPTION KEY ]"
+    puts "\e[1m\e[31mENCRYPTION KEY\e[0m\e[22m"
     print_encrypted_data(plaintext_pass).to_s
     return key_digest
 end
@@ -82,12 +76,15 @@ def encrypt_aes(data, plaintext_pass)
 end
 
 if options[:file]
-    data = File.open(options[:file], "rb") { |f| f.read }
+    begin
+        data = File.open(options[:file], "rb") { |f| f.read }
+    rescue Exception => e
+        puts "[!] Error: #{e}"
+        exit 0
+    end
 elsif options[:string]
     data = options[:string]
 end
-
-puts "xxx : " + options[:crypto].to_s
 
 case options[:crypto]
     when "xor"
@@ -96,11 +93,11 @@ case options[:crypto]
         else
             pass = SecureRandom.alphanumeric(16)
         end
-        puts "[ ENCRYPTION KEY ]"
+        puts "[ \e[1m\e[31mENCRYPTION KEY\e[0m\e[22m ]"
         puts pass
         puts
         encrypted_data = encrypt_xor(data, pass)
-        puts "[ ENCRYPTED DATA ]"
+        puts "\e[1mENCRYPTED DATA\e[22m"
         print_encrypted_data(encrypted_data)
     when "aes"
         if options[:key]
@@ -109,7 +106,7 @@ case options[:crypto]
             pass = Random.urandom(16)
         end
         encrypted_data = encrypt_aes(data, pass)
-        puts "[ ENCRYPTED DATA ]"
+        puts "\e[1m\e[31mENCRYPTED PAYLOAD\e[0m\e[22m"
         print_encrypted_data(encrypted_data.chars)
     else
         puts "[!] no such encryption"
