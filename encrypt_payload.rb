@@ -16,16 +16,20 @@ option_parser = OptionParser.new do |opt|
     opt.on('-k', '--key=KEY', 'encryption key') { |o| options[:key] = o }
 end
 
-# check if any option is selected
+begin
+    option_parser.parse!
+rescue OptionParser::ParseError => e
+    puts option_parser
+    exit 1
+end
+
 if !options.any?
     puts option_parser
     exit 1
 end
 
-begin
-    option_parser.parse!
-rescue OptionParser::ParseError => e
-    puts option_parser
+if options[:file] && options[:string]
+    puts "[i] -f or -s only, can't have both."
     exit 1
 end
 
@@ -75,11 +79,6 @@ def encrypt_aes(data, plaintext_pass)
     cipher.iv = "\x00" * 16
     cipher.key = digest_key(plaintext_pass)
     return cipher.update(data) + cipher.final
-end
-
-if options[:file] && options[:string]
-    puts "[i] -f or -s only, can't have both."
-    exit 1
 end
 
 if options[:file]
