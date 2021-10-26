@@ -6,10 +6,8 @@ require 'optparse'
 require 'openssl'
 require 'securerandom'
 
-options = {}
-
-
 ALLOWDED_CRYPTO = /#{Regexp.union(["aes", "xor"]).source}/i
+options = {}
 
 option_parser = OptionParser.new do |opt|
     opt.on('-f', '--file=FILENAME', 'filename') { |o| options[:file] = o }
@@ -25,7 +23,12 @@ rescue OptionParser::ParseError => e
     exit 1
 end
 
+if !options.any?
+    puts option_parser
+    exit 1
+end
 
+# print output
 def print_encrypted_data(data)
     if !data.is_a?(Array)
         data = data.chars
@@ -46,6 +49,7 @@ def print_encrypted_data(data)
     puts " };"
 end
 
+# need to digest plaintext key
 def digest_key(plaintext_pass)
     sha256 = OpenSSL::Digest::SHA256.new
     key_digest = sha256.digest(plaintext_pass)
@@ -54,6 +58,7 @@ def digest_key(plaintext_pass)
     return key_digest
 end
 
+# XOR encryption
 def encrypt_xor(data, plaintext_pass)
     output = Array.new
     (data.chars).each_index do |i|
@@ -62,6 +67,7 @@ def encrypt_xor(data, plaintext_pass)
     return output
 end
 
+# AES encryption
 def encrypt_aes(data, plaintext_pass)
     cipher = OpenSSL::Cipher::AES256.new(:CBC)
     cipher.encrypt
