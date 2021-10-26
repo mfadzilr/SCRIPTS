@@ -90,7 +90,12 @@ case options[:crypto].downcase
         puts "[ ENCRYPTED DATA ]"
         print_encrypted_data(encrypted_data)
     when "aes"
-        encrypted_data = encrypt_aes(data, Random.urandom(16))
+        if options[:key]
+            pass = options[:key]
+        else
+            pass = Random.urandom(16)
+        end
+        encrypted_data = encrypt_aes(data, pass)
         puts "[ ENCRYPTED DATA ]"
         print_encrypted_data(encrypted_data.chars)
     else
