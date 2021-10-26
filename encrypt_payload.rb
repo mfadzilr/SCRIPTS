@@ -52,7 +52,7 @@ end
 def digest_key(plaintext_pass)
     sha256 = OpenSSL::Digest::SHA256.new
     key_digest = sha256.digest(plaintext_pass)
-    puts "\e[1m\e[31mENCRYPTION KEY\e[0m\e[22m"
+    puts "[ ENCRYPTION KEY ]"
     print_encrypted_data(plaintext_pass).to_s
     return key_digest
 end
@@ -93,11 +93,11 @@ case options[:crypto]
         else
             pass = SecureRandom.alphanumeric(16)
         end
-        puts "[ \e[1m\e[31mENCRYPTION KEY\e[0m\e[22m ]"
+        puts "[ ENCRYPTION KEY ]"
         puts pass
         puts
         encrypted_data = encrypt_xor(data, pass)
-        puts "\e[1mENCRYPTED DATA\e[22m"
+        puts "[ ENCRYPTED PAYLOAD ]"
         print_encrypted_data(encrypted_data)
     when "aes"
         if options[:key]
@@ -106,7 +106,7 @@ case options[:crypto]
             pass = Random.urandom(16)
         end
         encrypted_data = encrypt_aes(data, pass)
-        puts "\e[1m\e[31mENCRYPTED PAYLOAD\e[0m\e[22m"
+        puts "[ ENCRYPTED DATA ]"
         print_encrypted_data(encrypted_data.chars)
     else
         puts "[!] no such encryption"
