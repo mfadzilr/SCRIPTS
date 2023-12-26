@@ -77,7 +77,7 @@ end
 
 if options[:file]
     begin
-        file = File.open(options[:file], "r")
+        file = File.open(options[:file], "rb")
         data = file.read
         file.close
     rescue Exception => e
